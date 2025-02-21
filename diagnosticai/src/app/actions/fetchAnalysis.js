@@ -3,43 +3,69 @@ import { ZodError } from "zod";
 export async function fetchAnalysis(state, formData) {
     try {
         const file = formData.get('files');
+        const host = formData.get('host');
         const port = formData.get('port');
+        const endpoint = formData.get('endpoint');
+
         if (!file || !(file instanceof File)) {
             throw new Error('No file provided');
         }
 
-        // Create a FormData object to send the file
         const fileFormData = new FormData();
         fileFormData.append('file', file);
-        console.log("File to be sent:", file);
-        console.log()
-        const response = await fetch("http://192.168.137.1:5001/schizo", {
-            method: "POST",
-            body: fileFormData // Send the FormData object directly
+
+        // Debug logs
+        console.log("Request details:", {
+            host,
+            port,
+            endpoint,
+            fileName: file.name,
+            fileType: file.type,
+            fileSize: file.size
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to process file');
-        }
+        const url = port ? 
+            `${host}:${port}${endpoint}` : 
+            `${host}${endpoint}`;
 
-        const result = await response.json();
-        return {
-            message: 'Analysis completed successfully',
-            error: {
-                files: ""
+        console.log("Sending request to:", url);
+
+            const response = await fetch(url, {
+                method: "POST",
+                body: fileFormData,
+                // headers: {
+                //     'Accept': '*/*',
+                // },
+                // Remove mode: 'cors' as it's handled by middleware
+            });
+
+            // Debug response
+            console.log("Response status:", response.status);
+            console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("Server error response:", errorText);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        };
-    } catch (error) {
-        console.error('Error processing file:', error);
-        if (error instanceof ZodError) {
-            const formValidationErrors = error.flatten().fieldErrors;
+
+            const result = await response.json();
+            console.log("Parsed response:", result);
+
             return {
-                message: "Validation failed",
-                errors: {
-                    files: formValidationErrors.files?.join(", ") || "",
-                },
+                message: 'Analysis completed successfully',
+                data: result,
+                error: { files: "" }
             };
-        }
+
+    } catch (error) {
+        // Detailed error logging
+        console.error('Error full details:', {
+            message: error.message,
+            type: error.constructor.name,
+            stack: error.stack
+        });
+
         return {
             message: "An error occurred while processing the file",
             error: {

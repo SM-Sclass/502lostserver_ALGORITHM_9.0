@@ -3,32 +3,21 @@ import { NextResponse } from "next/server";
 export async function POST(request) {
     try {
         const data = await request.json();
-        const newData = {
-            Age: data.age,
-            SEX: data.sex,
-            Prob: data.medicalProblem,
-            INJURY: data.surgeryHistory,
-            DRUG: data.drugHistory,
-        };
-        // console.log("Sending to Flask:", newData);
-         
-        const response = await fetch(`${process.env.NEXT_PUBLIC_PYTHON_LOCAL_IP}:5000/bone`, {
+        console.log("Received data:", data);
+        const pyResponse = await fetch("http://lostserver.pythonanywhere.com/analyze_symptoms", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(newData)
+            body: JSON.stringify(data)
         });
-
-        if (!response.ok) {
+        const responseData = await pyResponse.json();
+        console.log("Python response:", responseData);
+        if (!pyResponse.ok) {
             throw new Error("Network response was not ok");
         }
-
-        const responseData = await response.json();
-        // console.log("Flask response:", responseData);
-
         return NextResponse.json({
-            message: "Analysed successfully", 
+            message: "Symptoms analyzed successfully",
             data: responseData
         }, { status: 200 });
     } catch (error) {

@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
 import { diagnosisFormSchema } from '@/lib/validations/diagnos';
 
-function FileInputComp({ label, id, acceptFirst, fileTypes,port }) {
+function FileInputComp({ label, id, acceptFirst, fileTypes, endpoint }) {
     const {
         formState: { errors: formErrors },
     } = useForm({
@@ -24,6 +24,16 @@ function FileInputComp({ label, id, acceptFirst, fileTypes,port }) {
     const [files, setFiles] = useState(null);
     const [preview, setPreview] = useState(null);
     const [errors, setErrors] = useState("");
+    const [selectedEndpoint, setSelectedEndpoint] = useState(null);
+    
+    // Updated to handle new endpoint array format
+    const diseases = endpoint || [];
+
+    const handleDiseaseChange = (e) => {
+        const selectedDisease = diseases.find(d => d.name === e.target.value);
+        setSelectedEndpoint(selectedDisease || null);
+        console.log("Selected disease:", selectedDisease);
+    };
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -66,23 +76,52 @@ function FileInputComp({ label, id, acceptFirst, fileTypes,port }) {
             <form action={async (formData) => {
                 if (files) {
                     formData.set('files', files);
-                    formData.set('port',port) // Ensure file is added to FormData
+                    if (selectedEndpoint) {
+                        formData.set('host', selectedEndpoint.HOST);
+                        formData.set('port', selectedEndpoint.port);
+                        formData.set('endpoint', selectedEndpoint.endpoint);
+                    }
                 }
                 await formAction(formData);
             }} className="space-y-6 w-full">
+                {/* Updated Disease Selection Dropdown */}
+                {diseases.length > 0 && (
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium">
+                            Select Disease Type
+                            <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                            onChange={handleDiseaseChange}
+                            className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            required
+                        >
+                            <option value="">Select disease...</option>
+                            {diseases.map((disease) => (
+                                <option key={disease.name} value={disease.name}>
+                                    {disease.name.replace(/_/g, ' ')}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+
                 <button
                     type="submit"
                     disabled={
                         isPending ||
                         !files ||
-                        errors != (null || undefined || '')
+                        (diseases.length > 0 && !selectedEndpoint) ||
+                        errors !== ""
                     }
-                    className={`w-full md:w-auto px-6 py-2 rounded-lg transition-colors ${isPending ||
+                    className={`w-full md:w-auto px-6 py-2 rounded-lg transition-colors ${
+                        isPending ||
                         !files ||
-                        errors != (null || undefined || '')
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700'
-                        } text-white`}
+                        (diseases.length > 0 && !selectedEndpoint) ||
+                        errors !== ""
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-blue-600 hover:bg-blue-700'
+                    } text-white`}
                 >
                     {isPending ? (
                         <span className="flex items-center justify-center">

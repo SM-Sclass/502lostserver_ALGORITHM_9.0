@@ -10,44 +10,74 @@ const tabs = [
         label: 'Eyes & Skin',
         fileTypes: '.jpg,.jpeg,.png',
         acceptFirst: 'image/*',
-        port: 5002,
-        endpoint:['/anemia','/retina']
+        endpoint: [
+            {
+                name: 'anemia',
+                port: 5002,
+                endpoint: '/anemia',
+                HOST: process.env.NEXT_PUBLIC_PYTHON_LOCAL_IP
+            },
+            {
+                name: 'retina',
+                port: 5003,
+                endpoint: '/retina',
+                HOST: process.env.NEXT_PUBLIC_PYTHON_LOCAL_IP
+            }
+        ]
     },
     {
         id: 'bone-health',
         label: 'Bone Health',
         fileTypes: '.jpg,.jpeg,.png,.txt,.doc,.docx',
-        acceptFirst: '*/*',
-        port:5000,
+        acceptFirst: '*/*'
     },
     {
         id: 'brain-signals',
         label: 'Brain signals & MRI',
         fileTypes: '.edf,.jpg,.jpeg,.png',
         acceptFirst: '.edf,image/*',
-        port:5001
+        endpoint: [
+            {
+                name: 'schizo',
+                port: 5001,
+                endpoint: '/schizo',
+                HOST: process.env.NEXT_PUBLIC_PYTHON_LOCAL_IP
+            }
+        ]
     },
     {
         id: 'xray-ct',
         label: 'Xray & CTscan',
         fileTypes: '.jpg,.jpeg,.png',
         acceptFirst: 'image/*',
-        port:5003
+        endpoint: [
+            {
+                name: 'TB_Pneumonia',
+                port: 5004,
+                endpoint: '/tb',
+                HOST: process.env.NEXT_PUBLIC_PYTHON_LOCAL_IP
+            }
+        ]
     },
     {
         id: 'report',
         label: 'Report analysis',
         fileTypes: '.pdf,.jpg,.jpeg,.png',
-        acceptFirst: '.pdf,image/*', // Changed to null since we only want one upload
-        port:5004
+        acceptFirst: '.pdf,image/*',
+        endpoint: [
+            {
+                name: 'report',
+                HOST: process.env.NEXT_PUBLIC_REPORT_ANALYSIS_ENDPOINT
+            }
+        ]
     }
 ];
 
+
 export default function DiagnosisPage() {
-    const[tabState, setTabState] = useState({id: 'eyes-skin', label: 'Eyes & Skin', fileTypes: '.jpg,.jpeg,.png', acceptFirst: 'image/*', port:5002});
+    const [tabState, setTabState] = useState(tabs[0]);
     const [activeTab, setActiveTab] = useState('eyes-skin');
     const [result, setResult] = useState(null);
-    
     const handleTabChange = (tabId) => {
         setActiveTab(tabId);
         setResult(null);
@@ -89,8 +119,8 @@ export default function DiagnosisPage() {
             </div>
 
 
-            {tabState.id !== 'bone-health' && <FileInputComp label={tabState.label} id={tabState.id} fileTypes={tabState.fileTypes} acceptFirst={tabState.acceptFirst} port={tabState.port}/>}
-            {tabState.id === 'bone-health' && <OstoporosisForm/>}
+            {tabState.id !== 'bone-health' && <FileInputComp label={tabState.label} id={tabState.id} fileTypes={tabState.fileTypes} acceptFirst={tabState.acceptFirst} endpoint={tabState.endpoint} />}
+            {tabState.id === 'bone-health' && <OstoporosisForm />}
             {/* Results */}
             <div className="mt-8">
                 <AnimatePresence>
