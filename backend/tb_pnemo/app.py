@@ -1,59 +1,52 @@
-import torch
-import torch.nn as nn
-import torchvision.transforms as transforms
-from torchvision import models  # Import ResNet models
-from PIL import Image
+import numpy as np
+import tensorflow as tf
 from flask import Flask, request, jsonify
-import io
+import cv2
+import os
 
-# Initialize Flask app
 app = Flask(__name__)
 
-# Define model architecture (must match training)
-class PneumoniaClassifier(nn.Module):
-    def __init__(self, num_classes=4):
-        super(PneumoniaClassifier, self).__init__()
-        self.model = models.resnet18(pretrained=False)  # Load ResNet-18
-        self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)
-
-    def forward(self, x):
-        return self.model(x)
-
 # Load the trained model
-model = PneumoniaClassifier()
-model.load_state_dict(torch.load("pneumonia_model (1).pth", map_location=torch.device("cpu")))
+MODEL_PATH = "C:\\Users\\piyus\\Desktop\\models\\tb_pnemo.h5"  # Change this to your model file
+model = tf.keras.models.load_model(MODEL_PATH)
 
-# model = PneumoniaClassifier()
-# model.load_state_dict(torch.load("pneumonia_model.pth", map_location=torch.device("cpu")))
-model.eval()
+# Class labels (update according to your dataset)
+class_labels = ["Normal", "Pneumonia", "Tuberculosis", "Not an X-ray"]
 
-# Define image preprocessing
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.Grayscale(num_output_channels=3),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-])
+# Function to preprocess the image
+def preprocess_image(image_path):
+    img = cv2.imread(image_path)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = cv2.resize(img, (256, 256))  # Resize to match model input
+    img = np.expand_dims(img, axis=0) / 255.0  # Normalize
+    return img
 
-def preprocess_image(image):
-    image = Image.open(io.BytesIO(image)).convert("RGB")
-    return transform(image).unsqueeze(0)
-
-# API Endpoint
 @app.route("/predict", methods=["POST"])
 def predict():
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
 
     file = request.files["file"]
-    image_tensor = preprocess_image(file.read())
+    if file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
 
-    with torch.no_grad():
-        output = model(image_tensor)
-        prediction = torch.argmax(output, dim=1).item()
+    # Save the uploaded file
+    file_path = "uploaded_image.jpg"
+    file.save(file_path)
 
-    labels = ["NORMAL", "PNEUMONIA", "UNKNOWN", "TUBERCULOSIS"]
-    return jsonify({"prediction": labels[prediction]})
+    # Preprocess and predict
+    img = preprocess_image(file_path)
+    predictions = model.predict(img)
+    predicted_class = np.argmax(predictions)
+
+    # Cleanup: Remove the saved file
+    os.remove(file_path)
+
+    # Return response
+    return jsonify({
+        "prediction": class_labels[predicted_class],
+        "confidence": float(predictions[0][predicted_class])
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)
