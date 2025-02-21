@@ -1,0 +1,6 @@
+Flask
+PyMuPDF
+easyocr
+google-generativeai
+werkzeug
+numpy

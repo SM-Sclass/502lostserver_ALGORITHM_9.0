@@ -20,7 +20,7 @@ def initialize_chat_session():
     
     # Create the GenerativeModel with the specified configuration
     model = genai.GenerativeModel(
-        model_name="gemini-2.0-flash",
+        model_name="gemini-1.5-flash-8b",
         generation_config=generation_config,
     )
     
