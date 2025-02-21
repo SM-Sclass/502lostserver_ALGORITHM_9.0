@@ -8,7 +8,7 @@ import os
 app = Flask(__name__)
 
 # Load the trained model
-model_path = 'model1.h5'
+model_path = 'C:\\Users\\piyus\\Desktop\\models\\anemia.h5'
 custom_objects = {'BatchNormalization': tf.keras.layers.BatchNormalization}
 model = load_model(model_path, custom_objects=custom_objects, compile=False)
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
