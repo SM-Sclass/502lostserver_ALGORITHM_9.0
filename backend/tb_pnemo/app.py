@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
+from torchvision import models  # Import ResNet models
 from PIL import Image
 from flask import Flask, request, jsonify
 import io
@@ -12,7 +13,7 @@ app = Flask(__name__)
 class PneumoniaClassifier(nn.Module):
     def __init__(self, num_classes=4):
         super(PneumoniaClassifier, self).__init__()
-        self.model = models.resnet18(pretrained=False)
+        self.model = models.resnet18(pretrained=False)  # Load ResNet-18
         self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)
 
     def forward(self, x):
@@ -20,7 +21,10 @@ class PneumoniaClassifier(nn.Module):
 
 # Load the trained model
 model = PneumoniaClassifier()
-model.load_state_dict(torch.load("pneumonia_model.pth", map_location=torch.device("cpu")))
+model.load_state_dict(torch.load("pneumonia_model (1).pth", map_location=torch.device("cpu")))
+
+# model = PneumoniaClassifier()
+# model.load_state_dict(torch.load("pneumonia_model.pth", map_location=torch.device("cpu")))
 model.eval()
 
 # Define image preprocessing
