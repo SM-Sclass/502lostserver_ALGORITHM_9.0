@@ -18,12 +18,12 @@ const tabs = [
                 HOST: process.env.NEXT_PUBLIC_PYTHON_LOCAL_IP
             },
             {
-                name: 'retina',
+                name: 'diabetic retina',
                 port: 5003,
                 endpoint: '/retina',
                 HOST: process.env.NEXT_PUBLIC_PYTHON_LOCAL_IP
             }
-        ]
+        ],
     },
     {
         id: 'bone-health',
@@ -55,6 +55,12 @@ const tabs = [
                 name: 'TB_Pneumonia',
                 port: 5004,
                 endpoint: '/tb',
+                HOST: process.env.NEXT_PUBLIC_PYTHON_LOCAL_IP
+            },
+            {
+                name: 'Lung Cancer',
+                port: 5010,
+                endpoint: '/lung',
                 HOST: process.env.NEXT_PUBLIC_PYTHON_LOCAL_IP
             }
         ]
@@ -119,7 +125,12 @@ export default function DiagnosisPage() {
             </div>
 
 
-            {tabState.id !== 'bone-health' && <FileInputComp label={tabState.label} id={tabState.id} fileTypes={tabState.fileTypes} acceptFirst={tabState.acceptFirst} endpoint={tabState.endpoint} />}
+            {tabState.id !== 'bone-health' && <FileInputComp
+                label={tabState.label}
+                // id={tabState.id} 
+                // fileTypes={tabState.fileTypes} 
+                acceptFirst={tabState.acceptFirst}
+                endpoint={tabState.endpoint} />}
             {tabState.id === 'bone-health' && <OstoporosisForm />}
             {/* Results */}
             <div className="mt-8">

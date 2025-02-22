@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
+// import { NextResponse } from "next/server";
 
-export function middleware(request) {
+// export function middleware(request) {
     // const token = request.cookies.get('token')?.value;
     // const { pathname } = request.nextUrl;
     // // Public routes that don't need authentication
@@ -33,9 +33,29 @@ export function middleware(request) {
     //     return NextResponse.next();
     // }
 
-    return NextResponse.next();
+//     return NextResponse.next();
+// }
+
+// export const config = {
+//     matcher: ['/((?!_next/static|_next/image|favicon.ico|public/).*)'],
+// };
+
+import { NextResponse } from 'next/server';
+// import type { NextRequest } from 'next/server';
+
+export function middleware(request) {
+    const response = NextResponse.next();
+
+    // Add the CORS headers to the response
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', '*');
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
+
+    return response;
 }
 
 export const config = {
-    matcher: ['/((?!_next/static|_next/image|favicon.ico|public/).*)'],
+    matcher: '/api/:path*',
 };
+

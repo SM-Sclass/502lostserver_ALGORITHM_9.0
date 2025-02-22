@@ -4,8 +4,61 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FaFileUpload, FaBrain, FaChartLine, FaFileImage, FaFileMedical } from 'react-icons/fa';
 import AnimatedBackground from '../components/AnimatedBackground';
+import { useQuery } from '@tanstack/react-query';
+
+const fetchUser = async () => {
+  try {
+    const response = await fetch('/api/auth/user');
+    if (!response.ok) {
+      return null;
+    }
+    return response.data;
+  } catch (error) {
+    return null;
+  }
+};
 
 export default function LandingPage() {
+  const { data: userProfile, isLoading } = useQuery({
+    queryKey: ['user'],
+    queryFn: fetchUser,
+    select: (data) => data,
+  });
+
+  const renderAuthButtons = () => {
+    if (isLoading) {
+      return null;
+    }
+
+    if (!userProfile) {
+      return (
+        <div className="space-x-4">
+          <Link
+            href="/login"
+            className="bg-white text-blue-600 px-6 py-3 rounded-full text-lg font-semibold hover:bg-gray-100 transition-colors"
+          >
+            Login
+          </Link>
+          <Link
+            href="/register"
+            className="bg-blue-600 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-blue-700 transition-colors"
+          >
+            Register
+          </Link>
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        href="/dashboard"
+        className="bg-blue-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-blue-700 transition-colors"
+      >
+        Go to Dashboard
+      </Link>
+    );
+  };
+
   return (
     <div className="min-h-screen relative">
       <AnimatedBackground />
@@ -36,11 +89,7 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <Link href="/dashboard" 
-              className="bg-blue-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-blue-700 transition-colors"
-            >
-              Get Started
-            </Link>
+            {renderAuthButtons()}
           </motion.div>
         </div>
       </section>
